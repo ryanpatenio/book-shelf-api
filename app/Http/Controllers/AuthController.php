@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\books;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Laravel\Sanctum\PersonalAccessToken;
+
 
 class AuthController extends Controller
 {
@@ -35,33 +36,56 @@ class AuthController extends Controller
          return response()->json(['message' => 'User registered successfully'], 201);
      }
  
-     // User login and return the API token
-     public function login(Request $request){
-        // Validate credentials
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        // Attempt login
-        if (auth()->attempt($request->only('email', 'password'))) {
-            $user = auth()->user();
+    
+        // Handle login and generate a new token
+        public function login(Request $request)
+        {
+            // Validate the incoming data
+            $credentials = $request->only('email', 'password');
             
-            // Generate token
-            $token = $user->createToken('API Token')->plainTextToken;
+            // Attempt to authenticate the user
+            if (auth()->attempt($credentials)) {
+                $user = auth()->user();
+                
+                // Revoke all previous tokens for this user
+                $user->tokens->each(function ($token) {
+                    $token->delete();
+                });
 
-            return response()->json([
-                'message' => 'Login successful',
-                'token' => $token,
-            ], 200);
+                // Create a new personal access token for the user
+                $token = $user->createToken('API Token')->plainTextToken;
+                
+                // Return the token to the client
+                return response()->json(['token' => $token]);
+            }
+
+            // Return an unauthorized response if authentication fails
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-    return response()->json(['message' => 'Invalid credentials'], 401);
-}
  
      // Get authenticated user
      public function user(Request $request)
      {
          return response()->json($request->user());
+     }
+
+     // Handle logout and revoke the token
+    public function logout(Request $request){
+        // Revoke the token that was used to authenticate the request
+        $request->user()->currentAccessToken()->delete();
+
+        // Optionally, return a success message
+        return response()->json(['message' => 'Logged out successfully']);
+    }
+
+
+     public function test(){
+        $user = books::where('id',4)->get();
+
+        return response()->json([
+            'code'=>1,
+            'data'=>$user
+        ]);
      }
 }
