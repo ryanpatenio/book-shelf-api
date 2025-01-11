@@ -23,6 +23,7 @@ return new class extends Migration
             
             $table->text('description')->nullable();
             $table->date('published_date');
+            $table->string('img_url');
             $table->timestamps();
         });
     }

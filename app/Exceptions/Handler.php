@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\AuthenticationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,5 +47,22 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Customize the response for unauthenticated users.
+     *
+     * @param \Illuminate\Http\Request  $request
+     * @param \Throwable  $exception
+     * @return \Illuminate\Http\Response
+     */
+    public function render($request, Throwable $exception)
+    {
+        // Check for AuthenticationException (when token is invalid or missing)
+        if ($exception instanceof AuthenticationException) {
+            return response()->json(['message' => 'Unauthenticated. Please provide a valid token.'], 401);
+        }
+
+        return parent::render($request, $exception);
     }
 }
