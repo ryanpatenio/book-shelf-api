@@ -39,8 +39,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Admin routes
     Route::middleware(['role:admin'])->group(function () {
-        // Admin-specific routes
+        // Admin-specific routes //patch partial update
         Route::post('createBooks',[BooksController::class,'store'])->name('createBooks');
+        Route::post('updateBooks',[BooksController::class,'updateBooks']);
+        
     });
 
     // Super Admin routes
