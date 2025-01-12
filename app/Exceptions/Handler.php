@@ -62,6 +62,10 @@ class Handler extends ExceptionHandler
         if ($exception instanceof AuthenticationException) {
             return response()->json(['message' => 'Unauthenticated. Please provide a valid token.'], 401);
         }
+        //this exception for database error queries
+        if ($exception instanceof \Illuminate\Database\QueryException) {
+            return json_message(EXIT_BE_ERROR, 'Database error', ['error' => $exception->getMessage()]);
+        }
 
         return parent::render($request, $exception);
     }

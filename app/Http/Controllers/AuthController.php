@@ -22,7 +22,8 @@ class AuthController extends Controller
          ]);
  
          if ($validator->fails()) {
-             return response()->json($validator->errors(), 400);
+             return json_message(EXIT_FORM_NULL,'err',$validator->errors());
+           
          }
  
          // Create the new user
@@ -32,8 +33,8 @@ class AuthController extends Controller
              'password' => Hash::make($request->password),
          ]);
  
-         // Return success response
-         return response()->json(['message' => 'User registered successfully'], 201);
+         // Return success response        
+         return json_message(EXIT_SUCCESS,'Registered Succesfulyl!');
      }
  
     
@@ -42,10 +43,21 @@ class AuthController extends Controller
         {
             // Validate the incoming data
             $credentials = $request->only('email', 'password');
+
+            $remember = $request->has('remember'); // Check if 'remember' is checked
             
             // Attempt to authenticate the user
             if (auth()->attempt($credentials)) {
                 $user = auth()->user();
+
+                 // Set cookies if remember me is checked
+                if ($remember) {
+                    cookie()->queue('email', $request->email, 120); // Store for 120 minutes
+                    cookie()->queue('remember', true, 120);
+                } else {
+                    cookie()->queue(cookie()->forget('email'));
+                    cookie()->queue(cookie()->forget('remember'));
+                }
                 
                 // Revoke all previous tokens for this user
                 $user->tokens->each(function ($token) {
@@ -55,25 +67,33 @@ class AuthController extends Controller
                 // Create a new personal access token for the user
                 $token = $user->createToken('API Token')->plainTextToken;
                 
-                // Return the token to the client
-                return response()->json(['token' => $token]);
+                // Return the token to the client               
+                return json_message(EXIT_SUCCESS,'ok',['token'=>$token]);
             }
 
             // Return an unauthorized response if authentication fails
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return json_message(EXIT_BE_ERROR,'Invalid Credentials');
+           
         }
 
  
      // Get authenticated user
      public function user(Request $request)
      {
-         return response()->json($request->user());
+        return response()->json($request->user());
+        
      }
+
+    // return json_message(EXIT_SUCCESS,'ok',$request->user());
 
      // Handle logout and revoke the token
     public function logout(Request $request){
         // Revoke the token that was used to authenticate the request
         $request->user()->currentAccessToken()->delete();
+        
+         // Clear the 'remember' cookies if they exist
+        cookie()->queue(cookie()->forget('email'));
+        cookie()->queue(cookie()->forget('remember'));
 
         // Optionally, return a success message
         return response()->json(['message' => 'Logged out successfully']);

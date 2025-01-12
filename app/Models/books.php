@@ -9,6 +9,16 @@ class books extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'title',
+        'author',
+        'description',
+        'genre_id',
+        'decription',
+        'published_date',
+        'img_url'
+    ];
+
     // Define the relationship to the 'genres' table (one-to-many)
     public function genre()
     {
