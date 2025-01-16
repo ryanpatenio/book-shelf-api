@@ -14,7 +14,6 @@ class books extends Model
         'author',
         'description',
         'genre_id',
-        'decription',
         'published_date',
         'img_url'
     ];
