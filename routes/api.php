@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', [AuthController::class, 'register'])->name('register');
 Route::post('login', [AuthController::class, 'login'])->name('login');
 
-Route::get('books', [BooksController::class, 'index']);
+Route::get('books', [BooksController::class, 'index']);//books index all data of books
 Route::get('booksDetails/{id}',[BooksController::class,'getBooksDetails']);
 
 Route::get('getGenres',[GenreController::class,'getGenres']);
@@ -40,6 +40,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         //get user authenticated
         Route::get('user', [AuthController::class, 'user']);
+
+        //add Books in user collections
+        Route::post('addBundleOfBooksToMyCollection',[BooksController::class,'addBundleOfBooksToMyCollection'])->name('addBundle');
+        Route::post('addBooksToMyCollection',[BooksController::class,'addBooksToMyCollection'])->name('addOneBook');
+
 
         Route::get('getUserBookCollection',[UserBooksController::class,'getUserBookCollection']);//get user books collection
         Route::put('updateProfile',[ProfileController::class,'updateProfile']);//update user profile

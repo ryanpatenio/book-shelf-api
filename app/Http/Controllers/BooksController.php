@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\books;
+use App\Models\users_books;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,107 @@ class BooksController extends Controller
         }
     }
 
+    public function addBundleOfBooksToMyCollection(Request $request){
+         // Validate incoming request
+        $validator = Validator::make($request->all(), [
+            'book_ids' => 'required|array',
+            'book_ids.*' => 'integer|exists:books,id',
+        ]);
+        //example in front end
+        // {
+        //     "book_ids": [1, 2, 3, 4]
+        // }
+
+        if ($validator->fails()) {
+            return json_message(EXIT_FORM_NULL, 'Validation Error', $validator->errors());
+        }
+
+        try {
+            $userId = $request->user()->id;
+            $bookIds = $request->book_ids;
+
+            // Retrieve existing books in the user's collection
+            $existingBooks = users_books::where('user_id', $userId)
+                ->whereIn('book_id', $bookIds)//add condition book_id IN (101, 102, 104) ex.
+                ->pluck('book_id')//retrieves only the column name book_id
+                ->toArray();//convert into array
+
+            // Filter out books that are already in the collection
+            $newBooks = array_diff($bookIds, $existingBooks);
+
+            if (empty($newBooks)) {
+                return json_message(EXIT_BE_ERROR, 'All selected books are already in your collection.');
+            }
+
+            // Prepare data for bulk insertion
+            /**
+             * @var array_map 
+             * @param bookId -> $bookId: Represents each book ID in the $newBooks array.
+             * @param userId -> @var use use clause allows the function to access the 
+             * $userId variable, which is not defined inside the callback but is needed for the insertion.
+             * @param $newBooks @var array
+             * results ['
+             *  user_id => 1,
+             * 'book_id'=> 102,
+             * 'created'=>now(),
+             * 'updated_at => now()
+             * '...so on!]
+             */
+            $dataToInsert = array_map(function ($bookId) use ($userId) {
+                return [
+                    'user_id' => $userId,
+                    'book_id' => $bookId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }, $newBooks);
+
+            // Insert new records
+            users_books::insert($dataToInsert);
+
+            return json_message(EXIT_SUCCESS, 'Books added to your collection successfully.', [
+                'added_books' => $newBooks,
+            ]);
+
+        } catch (\Throwable $th) {
+            return handleException($th, 'An error occurred while adding books to your collection.');
+        }
+    }
+
+    public function addBooksToMyCollection(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|integer|exists:books,id',
+        ]);
+
+        if($validator->fails()){
+            return json_message(EXIT_BE_ERROR, 'Invalid or missing book ID.');
+        }
+
+        try {
+            $bookId = $request->id;
+            $userId = $request->user()->id;
+    
+            // Check if the book is already in the user's collection
+            $exists = users_books::where('user_id', $userId)
+                ->where('book_id', $bookId)
+                ->exists();
+    
+            if ($exists) {
+                return json_message(EXIT_BE_ERROR, 'This book is already in your collection.');
+            }
+            // Add book to the user's collection
+            users_books::create([
+                'user_id' => $userId,
+                'book_id' => $bookId,
+            ]);
+
+                 return json_message(EXIT_SUCCESS, 'Book added to your collection successfully.');
+
+        } catch (\Throwable $th) {
+            return handleException($th,'An error occured while adding Books to your Collections');
+        }
+    }
+    //store new Books
     public function store(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -64,10 +166,7 @@ class BooksController extends Controller
 
         } catch (\Exception $e) {
             // Log the error for debugging
-            Log::error('Error saving book: ' . $e->getMessage());
-    
-            // Return a generic error response to the client
-            return json_message(EXIT_BE_ERROR, 'Failed to save the book. Please try again later.');
+           return handleException($e,'Failed to save the book. Please try again later.');
         }
 
     }
@@ -137,31 +236,40 @@ class BooksController extends Controller
 
     public function deleteBook($id)
     {
-        $book = Books::find($id);
+        $book = Books::find($id);//return null if false
     
         if (!$book) {
             return json_message(EXIT_BE_ERROR, 'Book not found');
         }
+ 
+        try {
+             // Mark the book as deleted (without actually deleting it from the database)
+            $book->status = 'deleted';
+            $book->save();
+
+            return json_message(EXIT_SUCCESS, 'Book Deleted Successfully!');
+        } catch (\Throwable $th) {
+            return handleException($th,'An error occured while deleting Books!');
+        }
     
-        // Mark the book as deleted (without actually deleting it from the database)
-        $book->status = 'deleted';
-        $book->save();
-    
-        return json_message(EXIT_SUCCESS, 'Book Deleted Successfully!');
+        
     }
 
     public function restoreBook($id){
-        $book = Books::find($id);
+        $book = Books::find($id);//return nulls if false
 
         if (!$book) {
             return json_message(EXIT_BE_ERROR, 'Book not found');
         }
 
-        // Restore the book by setting the status back to active
-        $book->status = 'active';
-        $book->save();
-
-        return json_message(EXIT_SUCCESS, 'Book restored successfully');
+       try {
+            // Restore the book by setting the status back to active
+            $book->status = 'active';
+            $book->save();
+            return json_message(EXIT_SUCCESS, 'Book restored successfully');
+       } catch (\Throwable $th) {
+            return handleException($th,'An error occured while restoring Books');
+       }      
     }
 
     
