@@ -119,7 +119,7 @@ class BooksController extends Controller
                 'book_id' => $bookId,
             ]);
 
-                 return json_message(EXIT_SUCCESS, 'Book added to your collection successfully.');
+                return json_message(EXIT_SUCCESS, 'Book added to your collection successfully.');
 
         } catch (\Throwable $th) {
             return handleException($th,'An error occured while adding Books to your Collections');
