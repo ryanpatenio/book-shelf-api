@@ -15,22 +15,12 @@ class BooksController extends Controller
             // Retrieve all books from the database
             $books = Books::where('status', 'active')->get();
     
-            // Check if any books were found
-            if ($books->isEmpty()) {
-                return json_message(EXIT_SUCCESS, 'No books found', []);
-            }
     
             // Return books with success message
             return json_message(EXIT_SUCCESS, 'ok', $books);
         } catch (\Exception $e) {
             // Log the exception (optional)
-          
-            Log::error('Error fetching books: ' . $e->getMessage());
-    
-            // Return an error message
-            return json_message(EXIT_BE_ERROR, 'Failed to fetch books', [
-                'error' => $e->getMessage()
-            ]);
+            return handleException($e, 'Error fetching books');
         }
     }
 
@@ -96,68 +86,54 @@ class BooksController extends Controller
         return json_message(EXIT_SUCCESS, 'Book details retrieved successfully.', $book);
     }
 
-    public function updateBooks(Request $request){
-
-       // Validate incoming request
+    public function updateBooks(Request $request)
+    {
+        // Validate incoming request
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|exists:books,id',
-            'title' => 'required|string|max:255|unique:books,title,' . $request->id, // Exclude current book from unique check @it will ignore the current book being updated (based on its id), allowing the title to remain unchanged during the update.
-            'author' => 'required|string|max:255',
-            'genre_id' => 'required|integer|exists:genres,id',
-            'description' => 'required|string|max:255',
-            'published_date' => 'required|date',
-            'status' => 'nullable|in:active,inactive,pending',  // Allow updating status
-            'img_url' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:50048', // max:kilobytes | Optional field for image update | sometimes => optional field present or not
+            'title' => 'sometimes|required|string|max:255|unique:books,title,' . $request->id,
+            'author' => 'sometimes|required|string|max:255',
+            'genre_id' => 'sometimes|required|integer|exists:genres,id',
+            'description' => 'sometimes|required|string|max:255',
+            'published_date' => 'sometimes|required|date',
+            'status' => 'nullable|in:active,inactive,deleted',
+            'img_url' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:50048',
         ]);
-
+    
         if ($validator->fails()) {
             return json_message(EXIT_FORM_NULL, 'Validation Error', $validator->errors());
         }
-
-            try {
-                $book = Books::findOrFail($request->id);
-
-                // Check if a new image was uploaded
-                if ($request->hasFile('img_url')) {
-                    // Ensure the old image is deleted if it exists
-                    if ($book->img_url && \Storage::disk('public')->exists($book->img_url)) {
-                        \Storage::disk('public')->delete($book->img_url);
-                    }
-
-                    // Store new image and update the path
-                    $image = $request->file('img_url');
-                    $uniqueName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                    $imagePath = $image->storeAs('images', $uniqueName, 'public');
-
-                    $book->img_url = $imagePath;
+    
+        try {
+            // Find the book
+            $book = Books::findOrFail($request->id);
+    
+            // Handle image upload if present
+            if ($request->hasFile('img_url')) {
+                // Delete old image if it exists
+                if ($book->img_url && \Storage::disk('public')->exists($book->img_url)) {
+                    \Storage::disk('public')->delete($book->img_url);
                 }
-
-                 // Update the status if it's provided
-                if ($request->has('status')) {
-                    $book->status = $request->status;
-                }
-
-                // Update other fields
-                $book->title = $request->title;
-                $book->author = $request->author;
-                $book->genre_id = $request->genre_id;
-                $book->description = $request->description;
-                $book->published_date = $request->published_date;
-
-                // Save updated book
-                $book->save();
-
-                return json_message(EXIT_SUCCESS, 'Book updated successfully', $book);
-            } catch (\Throwable $e) {
-                // Log error
-                Log::error('Error updating book: ' . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString(),
-                ]);
-
-                return json_message(EXIT_BE_ERROR, 'Failed to update book');
+    
+                // Store new image and get its path
+                $image = $request->file('img_url');
+                $uniqueName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $book->img_url = $image->storeAs('images', $uniqueName, 'public');
             }
-       
+    
+            // Fill and save other fields
+            $book->fill($request->only([
+                'title', 'author', 'genre_id', 'description', 'published_date', 'status',
+            ]));
+            $book->save();
+    
+            return json_message(EXIT_SUCCESS, 'Book updated successfully', $book);
+        } catch (\Throwable $e) {
+            // Log the error
+           return handleException($e,'An error occured while updating Books!');
+        }
     }
+    
 
     public function deleteBook($id)
     {

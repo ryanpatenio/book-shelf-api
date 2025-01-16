@@ -17,7 +17,7 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var array<int, string> 
      */
     protected $fillable = [
         'name',
@@ -35,6 +35,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
+        'email_verified_at','role','status'
     ];
 
     /**
@@ -46,10 +48,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Define the relationship to the 'books' through the 'user_books' pivot table
+    /**
+     * @param (Book::class) where u want to link the user model
+     * @param ('user_books) must be the name of the table in the database
+     * @param ('user_id') foreign key of the first model where this model is belongs to USER and it must the same column name in the user_books table in the database
+     * However, if you use a different name (e.g., owner_id), you must specify it in the third parameter.
+     * @param ('book_id') foreign key of the second model w/c is Books
+     * if you don't specify the correct table name or foreign keys, the relationship will not work as expected, and Laravel will not be able to connect the models properly.
+     */
+
+     
+    // A user can have many books through the user_books table
     public function books()
     {
-        return $this->belongsToMany(Books::class, 'user_books')
-                    ->withTimestamps();
+        return $this->belongsToMany(Books::class, 'user_books', 'user_id', 'book_id');
     }
 }

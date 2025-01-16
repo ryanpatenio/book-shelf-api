@@ -9,9 +9,9 @@ class genres extends Model
 {
     use HasFactory;
 
-     // Define the relationship to the 'books' table (one-to-many)
-     public function books()
-     {
-         return $this->hasMany(Books::class);
-     }
+   // A genre can have many books
+    public function books()
+    {
+        return $this->hasMany(Books::class);
+    }
 }
