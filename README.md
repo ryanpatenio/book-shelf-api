@@ -15,3 +15,6 @@ Seed
 php artisan config:clear
 >> php artisan cache:clear
 >> php artisan config:cache
+
+@checks the logs ports  when its deployed then change the projects settings public networking the same in the logs port starting
+@db side checks also the settings and the public networking get the port and the db host
