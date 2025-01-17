@@ -1,7 +1,7 @@
 <?php
 
 /**
- * constant
+ * constant && custom helpers with Handle Exceptions
  */
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;

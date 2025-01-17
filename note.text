@@ -1,0 +1,1 @@
+chmod -R 775 storage/logs // for storage use in bash
