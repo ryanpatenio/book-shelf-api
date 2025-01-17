@@ -51,9 +51,13 @@ if (!function_exists('handleException')) {
      */
     function handleException(\Throwable $exception, $defaultMessage = 'An error occurred.')
     {
-        // Log the exception details
-        \Log::error($exception->getMessage(), ['trace' => $exception->getTraceAsString()]);
-
+        // Only log detailed trace information in local or development environment
+        if (app()->environment('local')) {
+            \Log::error($exception->getMessage(), ['trace' => $exception->getTraceAsString()]);
+        } else {
+            \Log::error($exception->getMessage());  // Log only the message in production
+        }
+    
         // Handle specific exceptions, for example ModelNotFoundException
         if ($exception instanceof ModelNotFoundException) {
             return response()->json([
@@ -61,7 +65,7 @@ if (!function_exists('handleException')) {
                 'message' => 'Resource not found',
             ], 404);
         }
-
+    
         // Return a generic error response
         return response()->json([
             'status' => 500,
@@ -69,4 +73,5 @@ if (!function_exists('handleException')) {
             'error' => $exception->getMessage(),
         ], 500);
     }
+    
 }
