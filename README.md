@@ -11,3 +11,7 @@
 Seed
 @php artisan db:seed --class=loadSeeder
 
+@clear cache
+php artisan config:clear
+>> php artisan cache:clear
+>> php artisan config:cache
