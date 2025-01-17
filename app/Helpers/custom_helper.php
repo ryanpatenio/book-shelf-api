@@ -50,28 +50,34 @@ if (!function_exists('handleException')) {
      * @return \Illuminate\Http\JsonResponse
      */
     function handleException(\Throwable $exception, $defaultMessage = 'An error occurred.')
-    {
-        // Only log detailed trace information in local or development environment
-        if (app()->environment('local')) {
-            \Log::error($exception->getMessage(), ['trace' => $exception->getTraceAsString()]);
-        } else {
-            \Log::error($exception->getMessage());  // Log only the message in production
-        }
-    
-        // Handle specific exceptions, for example ModelNotFoundException
-        if ($exception instanceof ModelNotFoundException) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Resource not found',
-            ], 404);
-        }
-    
-        // Return a generic error response
-        return response()->json([
-            'status' => 500,
-            'message' => $defaultMessage,
-            'error' => $exception->getMessage(),
-        ], 500);
+{
+    // Only log detailed trace information in local or development environment
+    if (app()->environment('local')) {
+        \Log::error($exception->getMessage(), ['trace' => $exception->getTraceAsString()]);
+    } else {
+        \Log::error($exception->getMessage());  // Log only the message in production
     }
+
+    // Handle specific exceptions, for example ModelNotFoundException
+    if ($exception instanceof ModelNotFoundException) {
+        // Log the specific exception but don't expose it to the user
+        return response()->json([
+            'status' => 404,
+            'message' => 'Resource not found',
+        ], 404);
+    }
+
+    // Handle other exceptions and return a generic error message
+    // Do not expose the exception details in production
+    $errorMessage = app()->environment('local') ? $exception->getMessage() : 'An unexpected error occurred.';
+
+    // Return a generic error response
+    return response()->json([
+        'status' => 500,
+        'message' => $defaultMessage,
+        'error' => $errorMessage,  // In production, only send a generic message
+    ], 500);
+}
+
     
 }
