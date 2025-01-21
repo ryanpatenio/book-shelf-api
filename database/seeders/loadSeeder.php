@@ -41,8 +41,8 @@ class loadSeeder extends Seeder
         
             // Insert Books
             $books = [
-                ['title' => 'Book 1', 'author' => 'Author 1', 'genre_id' => 1, 'description' => 'Description of Book 1', 'published_date' => '2020-01-01', 'img_url' => 'http://example.com/img1.jpg'],
-                ['title' => 'Book 2', 'author' => 'Author 2', 'genre_id' => 2, 'description' => 'Description of Book 2', 'published_date' => '2021-01-01', 'img_url' => 'http://example.com/img2.jpg'],
+                ['title' => 'Book 1', 'author' => 'Author 1',  'description' => 'Description of Book 1', 'published_date' => '2020-01-01', 'img_url' => 'http://example.com/img1.jpg'],
+                ['title' => 'Book 2', 'author' => 'Author 2', 'description' => 'Description of Book 2', 'published_date' => '2021-01-01', 'img_url' => 'http://example.com/img2.jpg'],
                 // Add more books
             ];
             books::insert($books);

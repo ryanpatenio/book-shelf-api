@@ -15,7 +15,8 @@ class UserBooksController extends Controller
         }
         
         try {
-            $userBooks = User::find($user_id)->books()->with('genre')->get();
+            $userBooks = User::find($user_id)->books()->with('genres')->get();
+          
            
             return json_message(EXIT_SUCCESS,'ok',$userBooks);
         } catch (\Throwable $th) {
