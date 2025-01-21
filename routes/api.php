@@ -27,9 +27,7 @@ Route::post('login', [AuthController::class, 'login'])->name('login');
 
 Route::get('books', [BooksController::class, 'index']);//books index all data of books
 Route::get('booksDetails/{id}',[BooksController::class,'getBooksDetails']);
- 
-Route::get('getGenres',[GenreController::class,'getGenres']);
-Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
+
 
 
 
@@ -44,8 +42,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         //add Books in user collections
         Route::post('addBundleOfBooksToMyCollection',[BooksController::class,'addBundleOfBooksToMyCollection'])->name('addBundle');
         Route::post('addBooksToMyCollection',[BooksController::class,'addBooksToMyCollection'])->name('addOneBook');
-        
-
 
         Route::get('getUserBookCollection',[UserBooksController::class,'getUserBookCollection']);//get user books collection
         Route::put('updateProfile',[ProfileController::class,'updateProfile']);//update user profile
@@ -63,6 +59,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::get('getActiveUsers',[UserController::class,'getActiveUsers']);//get Active Users
         Route::put('updateUserById',[UserController::class,'updateUserById']);//update Users
+
+         
+        Route::get('getGenres',[GenreController::class,'getGenres']);
+        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
         
     });
 
@@ -71,6 +71,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Super Admin-specific routes
         Route::get('getAllUsers',[UserController::class,'getAllUsers']);//get all USERS   
         Route::get('user', [AuthController::class, 'user']);//get my authenticated Data
+
+         
+        Route::get('getGenres',[GenreController::class,'getGenres']);
+        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
 
         //update users
         Route::put('updateUserById',[UserController::class,'updateUserById']);

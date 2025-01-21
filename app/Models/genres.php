@@ -12,7 +12,7 @@ class genres extends Model
    // A genre can have many books
    public function books()
     {
-        return $this->belongsToMany(Books::class, 'book_genre');
+        return $this->belongsToMany(Books::class, 'book_genre','genre_id','book_id');
     }
 
 }

@@ -142,15 +142,15 @@ class BooksController extends Controller
             // Genre already exists for the book
            return json_message(EXIT_BE_ERROR,'This genre is already assigned to the book.');
         }
-        
-
+ 
         try {
-            $insertNewGenre = book_genre::insert([
-                'book_id' => $request->book_id,
-                'genre_id'=> $request->genre_id
-            ]);
            
-            return json_message(EXIT_SUCCESS,'New Genre Added To Books Successfully!',$insertNewGenre);
+            $book_genre = new book_genre();
+            $book_genre->book_id = $request->book_id;
+            $book_genre->genre_id = $request->genre_id;
+            $book_genre->save();
+                       
+            return json_message(EXIT_SUCCESS,'New Genre Added To Books Successfully!',$book_genre);
 
         } catch (\Throwable $th) {
             //throw $th;
@@ -264,7 +264,6 @@ class BooksController extends Controller
            return handleException($e,'An error occured while updating Books!');
         }
     }
-    
 
     public function deleteBook($id)
     {
