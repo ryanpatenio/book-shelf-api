@@ -129,8 +129,8 @@ class BooksController extends Controller
 
     public function addGenreToBook(Request $request){
         $validator = Validator::make($request->all(),[
-            'genre_id'=>'required|exists:genres,id',
-            'book_id' => 'required|exists:books,id'
+            'genre_id'=>'required|integer|exists:genres,id',
+            'book_id' => 'required|integer|exists:books,id'
         ]); 
         if($validator->fails()){
             return json_message(EXIT_FORM_NULL,'Validation Errors',$validator->errors());
