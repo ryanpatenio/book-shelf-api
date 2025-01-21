@@ -75,8 +75,7 @@ class Handler extends ExceptionHandler
             }
         }
     
-        // Handle any other exceptions here
-    
+
         // Default error response for any other exceptions
         return parent::render($request, $exception);
     }

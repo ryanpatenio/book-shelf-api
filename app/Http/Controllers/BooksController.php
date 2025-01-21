@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\book_genre;
 use App\Models\books;
 use App\Models\users_books;
 use Illuminate\Http\Request;
@@ -125,13 +126,45 @@ class BooksController extends Controller
             return handleException($th,'An error occured while adding Books to your Collections');
         }
     }
+
+    public function addGenreToBook(Request $request){
+        $validator = Validator::make($request->all(),[
+            'genre_id'=>'required|exists:genres,id',
+            'book_id' => 'required|exists:books,id'
+        ]); 
+        if($validator->fails()){
+            return json_message(EXIT_FORM_NULL,'Validation Errors',$validator->errors());
+        }
+
+        $book = Books::find($request->book_id);
+
+        if ($book->genres()->where('genre_id', $request->genre_id)->exists()) {
+            // Genre already exists for the book
+           return json_message(EXIT_BE_ERROR,'This genre is already assigned to the book.');
+        }
+        
+
+        try {
+            $insertNewGenre = book_genre::insert([
+                'book_id' => $request->book_id,
+                'genre_id'=> $request->genre_id
+            ]);
+           
+            return json_message(EXIT_SUCCESS,'New Genre Added To Books Successfully!',$insertNewGenre);
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            return handleException($th,'Failed to Add new Genre to Books');
+        }
+
+
+    }
     //store new Books
     public function store(Request $request){
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255|unique:books,title',
-            'author' => 'required|string|max:255',
-            'genre_id' => 'required|integer|exists:genres,id',
+            'author' => 'required|string|max:255',          
             'description' => 'required|string|max:255',
             'published_date' => 'required|date',
             'status' => 'required|in:active,inactive,pending',  // Ensure the status is one of the valid options
@@ -155,7 +188,7 @@ class BooksController extends Controller
             $book = new books();
             $book->title = $request->title;
             $book->author = $request->author;
-            $book->genre_id = $request->genre_id;
+            
             $book->description = $request->description;
             $book->published_date = $request->published_date;
             $book->img_url = $imagePath; // Save image path
@@ -192,7 +225,6 @@ class BooksController extends Controller
             'id' => 'required|integer|exists:books,id',
             'title' => 'sometimes|required|string|max:255|unique:books,title,' . $request->id,
             'author' => 'sometimes|required|string|max:255',
-            'genre_id' => 'sometimes|required|integer|exists:genres,id',
             'description' => 'sometimes|required|string|max:255',
             'published_date' => 'sometimes|required|date',
             'status' => 'nullable|in:active,inactive,deleted',
@@ -222,7 +254,7 @@ class BooksController extends Controller
     
             // Fill and save other fields
             $book->fill($request->only([
-                'title', 'author', 'genre_id', 'description', 'published_date', 'status',
+                'title', 'author', 'description', 'published_date', 'status',
             ]));
             $book->save();
     

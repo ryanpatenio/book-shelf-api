@@ -10,8 +10,9 @@ class genres extends Model
     use HasFactory;
 
    // A genre can have many books
-    public function books()
+   public function books()
     {
-        return $this->hasMany(Books::class);
+        return $this->belongsToMany(Books::class, 'book_genre');
     }
+
 }
