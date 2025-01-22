@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BooksController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserBooksController;
 use App\Http\Controllers\UserController;
@@ -25,8 +26,12 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', [AuthController::class, 'register'])->name('register');
 Route::post('login', [AuthController::class, 'login'])->name('login');
 
-Route::get('books', [BooksController::class, 'index']);//books index all data of books
+Route::get('getAllBooks', [BooksController::class, 'index']);//books index all data of books
 Route::get('booksDetails/{id}',[BooksController::class,'getBooksDetails']);
+
+#Google Auth
+Route::get('google/auth',[GoogleAuthController::class,'redirect'])->name('google-auth');
+Route::get('auth/google/call-back',[GoogleAuthController::class,'callback']);
 
 
 // Protected Routes for authenticated users
@@ -34,51 +39,67 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // User routes
     Route::middleware(['role:user'])->group(function () {
 
-        //get user authenticated
+        #My Data
         Route::get('user', [AuthController::class, 'user']);
 
-        //add Books in user collections
+        #Books
+        Route::get('getMyBooksCollection',[UserBooksController::class,'getUserBookCollection']);//get user books collection
         Route::post('addBundleOfBooksToMyCollection',[BooksController::class,'addBundleOfBooksToMyCollection'])->name('addBundle');
         Route::post('addBooksToMyCollection',[BooksController::class,'addBooksToMyCollection'])->name('addOneBook');
 
-        Route::get('getUserBookCollection',[UserBooksController::class,'getUserBookCollection']);//get user books collection
+        #Profile
         Route::put('updateProfile',[ProfileController::class,'updateProfile']);//update user profile
 
     });
 
     // Admin routes
     Route::middleware(['role:admin'])->group(function () {
-        // Admin-specific routes //patch partial update
+        #Books
         Route::post('createBooks',[BooksController::class,'store'])->name('createBooks');//create
         Route::post('updateBooks',[BooksController::class,'updateBooks']);//use method post coz of form data in one request
-        Route::put('updateGenre/{id}',[GenreController::class,'update'])->name('updateGenre');//update Genre
+        
+        #Genres
+        Route::get('getAllGenres',[GenreController::class,'getGenres']);
+        Route::post('addNewGenreToBooks',[BooksController::class,'addGenreToBook']);#will add new Genre in the Books
+        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
+        Route::put('updateGenre/{id}',[GenreController::class,'update'])->name('updateGenre');//update Genre      
+        
 
-        Route::post('addNewGenreToBooks',[BooksController::class,'addGenreToBook']);
-
+        #Users
         Route::get('getActiveUsers',[UserController::class,'getActiveUsers']);//get Active Users
         Route::put('updateUserById',[UserController::class,'updateUserById']);//update Users
+        Route::put('updateUserRole',[UserController::class,'updateRole']);//update user role
 
-         
-        Route::get('getGenres',[GenreController::class,'getGenres']);
-        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
+       
+        #My Data
+        Route::get('user', [AuthController::class, 'user']);//get my authenticated Data
         
     });
 
     // Super Admin routes
     Route::middleware(['role:super_admin'])->group(function () {
-        // Super Admin-specific routes
+        #Books
+        Route::post('createBooks',[BooksController::class,'store'])->name('createBooks');//create
+        Route::post('updateBooks',[BooksController::class,'updateBooks']);//use method post coz of form data in one request
+        
+
+        #Genres
+        Route::post('addNewGenreToBooks',[BooksController::class,'addGenreToBook']);
+        Route::get('getAllGenres',[GenreController::class,'getGenres']);
+        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
+        Route::put('updateGenre/{id}',[GenreController::class,'update'])->name('updateGenre');//update Genre
+
+        #Users
         Route::get('getAllUsers',[UserController::class,'getAllUsers']);//get all USERS   
+        Route::put('updateUserById',[UserController::class,'updateUserById']);
+        Route::put('updateUserRole',[UserController::class,'updateRole']);
+        Route::put('restoreUser',[UserController::class,'restoreUser']);
+
+        #My DATA
         Route::get('user', [AuthController::class, 'user']);//get my authenticated Data
 
-         
-        Route::get('getGenres',[GenreController::class,'getGenres']);
-        Route::get('getGenreById/{id}',[GenreController::class,'getGenreById'])->name('getGenreById');
-
-        //update users
-        Route::put('updateUserById',[UserController::class,'updateUserById']);
-
         //delete user
-        Route::delete('delete',[UserController::class,'delete']);
+        Route::delete('deleteUser',[UserController::class,'delete']);
     });
 
     // Logout route

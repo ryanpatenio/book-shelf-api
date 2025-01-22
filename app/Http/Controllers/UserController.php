@@ -65,6 +65,28 @@ class UserController extends Controller
         }
     }
 
+    public function updateRole(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|integer|exists:users,id',
+            'role'=> 'required'
+        ]);
+        if($validator->fails()){
+            return json_message(EXIT_FORM_NULL,'Validation errors',$validator->errors());
+        }
+
+       try {
+            $user = User::findOrFail($request->id);
+            $user->role = $request->role;
+
+            $user->save();
+
+            return json_message(EXIT_SUCCESS,'user role updated successfully!',$user);
+
+       } catch (\Throwable $th) {
+            return handleException($th,'Unable to update user role.');
+       }
+    }
+
     public function delete(Request $request){
         if(empty($request->only('id'))){
             return json_message(EXIT_FORM_NULL,'Validation Error',['Invalid ID']);
@@ -81,5 +103,21 @@ class UserController extends Controller
             return handleException($th,'An error occured while deleting User');
         }
 
+    }
+
+    public function restoreUser(Request $request){
+        if(empty($request->only('id'))){
+            return json_message(EXIT_FORM_NULL,'Validation Error',['Invalid ID']);
+        }
+
+        try {
+            $user = User::findOrfail($request->id);
+            $user->status = '0';
+            $user->save();
+
+            return json_message(EXIT_SUCCESS,'user restored successfully!',$user);  
+        } catch (\Throwable $th) {
+           return handleException($th,'Unable to restore user');
+        }
     }
 }
