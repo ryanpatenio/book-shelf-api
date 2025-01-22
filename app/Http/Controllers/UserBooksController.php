@@ -15,9 +15,9 @@ class UserBooksController extends Controller
         }
         
         try {
+            //with function link the table genres to get the data also in multidimensional array
             $userBooks = User::find($user_id)->books()->with('genres')->get();
-          
-           
+                    
             return json_message(EXIT_SUCCESS,'ok',$userBooks);
         } catch (\Throwable $th) {
             return handleException($th,'An error occured while fetching your Books Collection');

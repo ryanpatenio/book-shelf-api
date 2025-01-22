@@ -28,11 +28,13 @@ class books extends Model
      */
 
     // A book can belong to many users through the user_books table
+    //books connect relation ship in table users and link it in the pivot table user_books
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_books', 'book_id', 'user_id');
     }
- 
+    
+    //relation of books in genres table
     public function genres()
     {
         return $this->belongsToMany(Genres::class, 'book_genre','book_id','genre_id');

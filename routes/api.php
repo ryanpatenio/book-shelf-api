@@ -29,8 +29,6 @@ Route::get('books', [BooksController::class, 'index']);//books index all data of
 Route::get('booksDetails/{id}',[BooksController::class,'getBooksDetails']);
 
 
-
-
 // Protected Routes for authenticated users
 Route::middleware(['auth:sanctum'])->group(function () {
     // User routes
