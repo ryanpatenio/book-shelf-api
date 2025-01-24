@@ -36,11 +36,13 @@ Route::get('auth/google/call-back',[GoogleAuthController::class,'callback']);
 
 // Protected Routes for authenticated users
 Route::middleware(['auth:sanctum'])->group(function () {
+     #User Auth  Data
+     Route::get('user', [AuthController::class, 'user']);
+  
     // User routes
     Route::middleware(['role:user'])->group(function () {
 
-        #My Data
-        Route::get('user', [AuthController::class, 'user']);
+       
 
         #Books
         Route::get('getMyBooksCollection',[UserBooksController::class,'getUserBookCollection']);//get user books collection
@@ -71,9 +73,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('updateUserRole',[UserController::class,'updateRole']);//update user role
 
        
-        #My Data
-        Route::get('user', [AuthController::class, 'user']);//get my authenticated Data
-        
+      
     });
 
     // Super Admin routes
@@ -94,9 +94,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('updateUserById',[UserController::class,'updateUserById']);
         Route::put('updateUserRole',[UserController::class,'updateRole']);
         Route::put('restoreUser',[UserController::class,'restoreUser']);
-
-        #My DATA
-        Route::get('user', [AuthController::class, 'user']);//get my authenticated Data
 
         //delete user
         Route::delete('deleteUser',[UserController::class,'delete']);
