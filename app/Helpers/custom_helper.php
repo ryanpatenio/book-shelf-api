@@ -28,11 +28,22 @@ if (!function_exists('json_message')) {
      */
     function json_message($code,$message, $data = [])
     {
+       // Define the status code based on the $code parameter
+        $statusCode = 200; // Default status code
+        
+        // Check if the $code is EXIT_FORM_NULL and change the status to 402
+        if ($code === 'EXIT_FORM_NULL') {
+            $statusCode = 402;
+        }
+        if ($code === 'EXIT_BE_ERROR') {
+            $statusCode = 401;
+        }
+
         return response()->json([
             'code'    => $code,
             'message' => $message,          
-            'data' => $data,
-        ], 200);
+            'data'    => $data,
+        ], $statusCode);
     }
 
     
